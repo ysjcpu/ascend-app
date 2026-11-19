@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101010">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ASCEND">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>ASCEND — Project Ascend</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b0c;--panel:#151517;--panel2:#1d1d20;--line:#2b2b30;--text:#f4f4f5;--muted:#a1a1aa;--accent:#d4d4d8;--green:#86c99b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));}
+main{max-width:720px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;padding:20px 2px 16px}.brand{font-size:23px;font-weight:850;letter-spacing:3px}.sub{font-size:10px;color:var(--muted);letter-spacing:1.7px;margin-top:4px}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:11px}
+h1{font-size:25px;margin:10px 0 5px}p{color:var(--muted);line-height:1.45;margin:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0}
+.day{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 2px;color:var(--muted);font-size:12px;font-weight:700}
+.day.active{background:#e4e4e7;color:#111;border-color:#e4e4e7}
+.stats{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.small{font-size:12px;color:var(--muted)}.bar{height:7px;background:#29292d;border-radius:9px;overflow:hidden}.fill{height:100%;width:0;background:var(--green);transition:width .2s}
+.section{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:20px 0 9px;font-weight:750}
+.task{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #252529}.task:last-child{border:0}.task input{appearance:none;width:21px;height:21px;flex:0 0 21px;border:1.5px solid #666;border-radius:7px;margin:0;margin-top:1px;background:transparent}.task input:checked{background:#bfc8c1;border-color:#bfc8c1}.task input:checked:after{content:"✓";display:block;color:#101010;text-align:center;font-weight:900;line-height:19px}.task label{line-height:1.35;font-size:14px;flex:1}.task.done label{text-decoration:line-through;color:#777}.tag{font-size:10px;color:var(--muted);white-space:nowrap;border:1px solid var(--line);border-radius:99px;padding:4px 7px}
+button{font:inherit;cursor:pointer}.primary,.secondary{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#e4e4e7;color:#111;font-weight:750}.secondary{background:var(--panel2);color:var(--text);font-weight:600}.row{display:flex;gap:8px;flex-wrap:wrap}.row button{flex:1}
+.timer{text-align:center}.timer-label{font-size:11px;letter-spacing:1.5px;color:var(--muted);font-weight:750}.clock{font-size:58px;font-variant-numeric:tabular-nums;font-weight:750;letter-spacing:-2px;margin:8px 0}.timer-mode{color:var(--muted);font-size:13px;margin-bottom:14px}.timer-actions{display:flex;gap:8px;justify-content:center}.timer-actions button{min-width:90px}
+input[type=number]{background:#101012;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--text);width:68px}
+.footer{text-align:center;color:#777;font-size:11px;padding:18px 0 8px}.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><div class="brand">ASCEND</div><div class="sub">PROJECT ASCEND · DAILY COMMAND CENTER</div></div>
+    <div class="pill" id="dateLabel">YOUR WEEK</div>
+  </header>
+  <h1>Show up. Build momentum.</h1>
+  <p>Your tasks, in order. No scheduled times — you choose when each block happens.</p>
+  <div class="days" id="days"></div>
+  <section class="card">
+    <div class="stats"><strong id="dayTitle">Monday</strong><span class="small" id="progressText">0 / 0 complete</span></div>
+    <div class="bar"><div class="fill" id="progressFill"></div></div>
+    <div id="taskList"></div>
+    <div class="row" style="margin-top:14px"><button class="secondary" id="resetDay">Reset this day</button><button class="secondary" id="resetWeek">Reset whole week</button></div>
+  </section>
+  <div class="section">Focus timer</div>
+  <section class="card timer">
+    <div class="timer-label">POMODORO</div>
+    <div class="clock" id="clock">25:00</div>
+    <div class="timer-mode" id="timerMode">Focus session · 25 minutes</div>
+    <div class="timer-actions">
+      <button class="primary" id="startPause">Start</button>
+      <button class="secondary" id="resetTimer">Reset</button>
+      <button class="secondary" id="skipTimer">Skip</button>
+    </div>
+    <div class="row" style="margin-top:15px;align-items:center;justify-content:center">
+      <label class="small">Focus <input type="number" id="focusLength" min="5" max="90" value="25"></label>
+      <label class="small">Break <input type="number" id="breakLength" min="1" max="30" value="5"></label>
+      <button class="secondary" id="applyTimer">Apply</button>
+    </div>
+    <p class="small" style="margin-top:12px">After a focus session, take a 5-minute break. Stand up, stretch or get water.</p>
+  </section>
+  <div class="section">Weekly rhythm</div>
+  <section class="card">
+    <p><strong>Strength:</strong> 3 coached strength sessions + 2 light mobility / prehab visits.</p>
+    <p style="margin-top:8px"><strong>Tennis:</strong> 3 sessions, with footwork, skills and court play spread through the week.</p>
+    <p style="margin-top:8px"><strong>Recovery:</strong> Saturday is flexible; Sunday is a full rest day.</p>
+    <p style="margin-top:8px"><strong>Academics:</strong> Start with your hardest subject while your focus is fresh.</p>
+  </section>
+  <div class="footer">Progress is saved on this device in this browser. Rest days count. Consistency over perfection.</div>
+</main>
+<script>
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const routines={
+Monday:[
+["Morning reset","Personal"],["Deep study: Algebra 2","Academics"],["Deep study: Chemistry","Academics"],["Revision / active recall","Academics"],["Gym: upper-body strength","Strength"],["Tennis: technical hitting + controlled footwork","Tennis"],["Cook or learn one technique","Cooking"],["Plan a cooking-video idea","Content"],["Wind down and prepare tomorrow","Recovery"]],
+Tuesday:[
+["Morning reset","Personal"],["Deep study: Geometry","Academics"],["Deep study: English","Academics"],["Practice questions / reading","Academics"],["Gym: lower-body strength","Strength"],["Cooking practice: recipe or technique","Cooking"],["Edit or publish a cooking video","Content"],["Gaming / free time","Personal"],["Wind down and prepare tomorrow","Recovery"]],
+Wednesday:[
+["Morning reset","Personal"],["Deep study: AP Human Geography","Academics"],["Deep study: Algebra 2","Academics"],["Review difficult concepts","Academics"],["Light gym: mobility + shoulder stability + core","Mobility"],["Tennis: footwork, acceleration and deceleration","Tennis"],["Try a new recipe","Cooking"],["Capture short clips if useful","Content"],["Wind down and prepare tomorrow","Recovery"]],
+Thursday:[
+["Morning reset","Personal"],["Deep study: Chemistry","Academics"],["Deep study: Geometry","Academics"],["Practice test / error review","Academics"],["Gym: full-body strength","Strength"],["Cooking: preparation or skill practice","Cooking"],["Edit and publish a cooking video","Content"],["Gaming / free time","Personal"],["Wind down and prepare tomorrow","Recovery"]],
+Friday:[
+["Morning reset","Personal"],["Deep study: English","Academics"],["Deep study: AP Human Geography","Academics"],["Weekly academic catch-up","Academics"],["Light gym: balance, rotator cuff + mobility","Mobility"],["Tennis: point construction + controlled match play","Tennis"],["Choose weekend recipe","Cooking"],["Gaming / social time","Personal"],["Wind down and prepare tomorrow","Recovery"]],
+Saturday:[
+["Morning reset","Personal"],["Weekly academic revision","Academics"],["Complete outstanding schoolwork","Academics"],["Cook a complete meal","Cooking"],["Film a cooking video","Content"],["Edit / publish a cooking video","Content"],["Enjoy gaming or time with friends","Personal"],["Light stretching if desired","Recovery"]],
+Sunday:[
+["Sleep and wake without rushing","Recovery"],["Family time / relaxing activity","Personal"],["Light reading or optional review","Academics"],["Plan next week's study priorities","Academics"],["Choose next week's recipes and video ideas","Content"],["Prepare school / gym / tennis essentials","Personal"],["Reflect on wins and lessons from the week","Recovery"],["Full rest — no structured training","Recovery"]]
+};
+let selected=new Date().getDay(); selected=(selected+6)%7;
+let checked=JSON.parse(localStorage.getItem("ascendChecks")||"{}");
+let focus=25,rest=5,remaining=1500,mode="focus",running=false,interval=null;
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("ascendChecks",JSON.stringify(checked))}
+function renderDays(){
+ $("days").innerHTML="";
+ days.forEach((d,i)=>{let b=document.createElement("button");b.className="day"+(i===selected?" active":"");b.textContent=d.slice(0,3);b.setAttribute("aria-label",d);b.onclick=()=>{selected=i;render()};$("days").appendChild(b)});
+}
+function renderTasks(){
+ const tasks=routines[days[selected]],done=(checked[selected]||[]);
+ $("dayTitle").textContent=days[selected];
+ $("progressText").textContent=`${done.length} / ${tasks.length} complete`;
+ $("progressFill").style.width=(done.length/tasks.length*100)+"%";
+ $("taskList").innerHTML="";
+ let last="";
+ tasks.forEach((t,i)=>{
+  if(t[1]!==last){last=t[1];let h=document.createElement("div");h.className="section";h.textContent=last;$("taskList").appendChild(h)}
+  let wrap=document.createElement("div");wrap.className="task"+(done.includes(i)?" done":"");
+  let cb=document.createElement("input");cb.type="checkbox";cb.checked=done.includes(i);cb.id="task"+i;
+  cb.onchange=()=>{let arr=checked[selected]||[];checked[selected]=cb.checked?[...arr,i]:arr.filter(x=>x!==i);save();renderTasks()};
+  let label=document.createElement("label");label.htmlFor=cb.id;label.textContent=t[0];
+  wrap.append(cb,label);$("taskList").appendChild(wrap);
+ });
+}
+function render(){renderDays();renderTasks()}
+$("resetDay").onclick=()=>{if(confirm("Clear this day's checklist?")){checked[selected]=[];save();renderTasks()}};
+$("resetWeek").onclick=()=>{if(confirm("Clear all weekly checklists?")){checked={};save();renderTasks()}};
+$("dateLabel").textContent=new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric"}).format(new Date());
+function displayTimer(){let m=Math.floor(remaining/60),s=remaining%60;$("clock").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");$("timerMode").textContent=mode==="focus"?`Focus session · ${focus} minutes`:`Break · ${rest} minutes`;}
+function stop(){running=false;clearInterval(interval);interval=null;$("startPause").textContent="Start"}
+function setMode(next){mode=next;remaining=(mode==="focus"?focus:rest)*60;displayTimer();stop()}
+$("startPause").onclick=()=>{if(running){stop();return}running=true;$("startPause").textContent="Pause";interval=setInterval(()=>{remaining--;displayTimer();if(remaining<=0){stop();if(mode==="focus"){alert("Focus session complete. Time for a break.");setMode("break")}else{alert("Break finished. Ready for another focus session?");setMode("focus")}}},1000)};
+$("resetTimer").onclick=()=>{stop();remaining=(mode==="focus"?focus:rest)*60;displayTimer()};
+$("skipTimer").onclick=()=>{stop();setMode(mode==="focus"?"break":"focus")};
+$("applyTimer").onclick=()=>{let f=Number($("focusLength").value),b=Number($("breakLength").value);if(!Number.isInteger(f)||f<5||f>90||!Number.isInteger(b)||b<1||b>30){alert("Choose focus 5–90 minutes and break 1–30 minutes.");return}focus=f;rest=b;stop();mode="focus";remaining=focus*60;displayTimer()};
+render();displayTimer();
+</script>
+<script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {})); }</script>
+</body>
+</html>
